@@ -9,7 +9,8 @@
 void IMU_DATA ();
 void configureSensor(void);
 void displaySensorDetails(void);
-void motor_function(int motorid, int targetangle, int speeds,int currentpos[]);
+void motor_move_to_angle(int motorid, int targetangle, int speeds,int currentpos[]);
+void motor_sweep(int motorid, int offset, int speeds);
 /* Assign a unique base ID for this sensor */   
 Adafruit_LSM9DS0 lsm = Adafruit_LSM9DS0(1000);  // Use I2C, ID #1000
 
@@ -34,14 +35,13 @@ Servo myservofrontL;
 Servo myservofrontR;
 Servo myservomiddleR;
 
-
 int pos;    
 int n;
 int speeds;
-int originalpos=100;
+int originalpos=90;
 int currentpos[6];
 char read_data[10];
-int targetpos;
+int offset;
 int motorid;
 int rd;
 int ndx = 0;
@@ -92,8 +92,9 @@ void setup(void)
 
 void loop(void){
   IMU_DATA();
+  
   char* input;
-  while(Serial.available()>0){
+  while(Serial.available()>0 ){
      input = Serial.read();
      if (input == 'm'){
       //Serial.println("success");
@@ -109,16 +110,19 @@ void loop(void){
               }
               else{
                 newData = true;
+                ndx=0;
               }
             }
         }
       }
-        motorid = ((int) read_data[0]) -48;
+        motorid = ((int) read_data[0]-48);
         //Serial.print("Motor ID is:");Serial.println(motorid);
-        targetpos = ((int)read_data[1])*100+(int)read_data[2]*10+(int)read_data[3];
-        speeds = ((int)read_data[4])*100+(int)read_data[5]*10+(int)read_data[6];
-        motor_function(motorid,targetpos,speeds,currentpos);
-        
+        offset = ((int)read_data[1]-48)*100 + ((int)read_data[2]-48)*10 + (int)read_data[3]-48;
+        //Serial.print("offset is:");Serial.println(offset);
+        speeds = ((int)read_data[4]-48)*100 + ((int)read_data[5]-48)*10 + (int)read_data[6]-48;
+        //Serial.print("time delay is:");Serial.println(speeds);
+        //motor_function(motorid,targetpos,speeds,currentpos);
+        motor_sweep(motorid,offset,speeds);
      
      }
 }
@@ -132,12 +136,36 @@ void IMU_DATA ()
   lsm.getEvent(&accel, &mag, &gyro, &temp); 
   sprintf(tbs,"%7d%7d%7d%7d%7d%7d",(int)(gyro.gyro.x*100),(int)(gyro.gyro.y*100),(int)(gyro.gyro.z*100),(int)(accel.acceleration.x*100),(int)(accel.acceleration.y*100),(int)(accel.acceleration.z*100));
   Serial.println(tbs);
-
- 
-  delay(10);
+  delay(100);
 }
 
-void motor_function(int motorid, int targetangle, int speeds,int currentpos[]) {
+void motor_sweep(int motorid, int offset, int speeds) {      // controlling motor to sweep
+  n=speeds; // delay time period for movement of every degree
+  
+  //Serial.println("in motor function");
+  //Serial.print("Motor ID is:");Serial.println(motorid);
+  //Serial.print("offset is:");Serial.println(offset);
+  //Serial.print("time delay is:");Serial.println(speeds);
+  
+  pos = offset;
+  for (pos = offset; pos <= offset+35; pos ++) { 
+      // in steps of 1 degree
+      Motors[motorid].write(pos);              
+      delay(n);       //   one degree / delay time n     1 degree /10ms == 100 degree / s        
+  }
+  for (pos = offset+35; pos >= offset-35; pos --) { 
+      Motors[motorid].write(pos);              
+      delay(n);                      
+  }
+  for (pos = offset-35; pos <= offset; pos ++) { 
+      Motors[motorid].write(pos);              
+      delay(n);                      
+  }
+  
+  //Serial.print("curr postion is:");Serial.println(pos);
+  //Serial.print("end of motor function ");   
+}
+void motor_move_to_angle(int motorid, int targetangle, int speeds,int currentpos[]) {      // controlling motor to specific angle.
   n=speeds; // delay time period for movement of every degree
   //Serial.print("in motor function");
   if (currentpos[motorid] < targetangle){
