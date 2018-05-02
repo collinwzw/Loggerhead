@@ -45,7 +45,7 @@ while True:
           acc_z_avg= acc_z/count
           format(acc_z_avg,'.2f')
           
-          #print (gyro_x_avg,gyro_y_avg,gyro_z_avg,acc_x_avg,acc_y_avg,acc_z_avg)
+          print (gyro_x_avg,gyro_y_avg,gyro_z_avg,acc_x_avg,acc_y_avg,acc_z_avg)
 
           roll_acc = 180*math.atan(acc_x_avg/acc_z_avg)/3.1416
           format(roll_acc,'.2f')
@@ -59,8 +59,8 @@ while True:
           #print ("pitch from gyrois :%f"  %pitch_gyro)
           motorid=0
           offset=90 + (pitch_acc/90)*45
-          speed=10
-          print(b'm%d%03d%03d' %(motorid,offset,speed))
+          speed=5
+          #print(b'm%d%03d%03d' %(motorid,offset,speed))
           ser.write(b'm%d%03d%03d' %(motorid,offset,speed)) 
           gyro_x = 0
           gyro_y = 0

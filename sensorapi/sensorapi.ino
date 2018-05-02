@@ -136,7 +136,9 @@ void IMU_DATA ()
   lsm.getEvent(&accel, &mag, &gyro, &temp); 
   sprintf(tbs,"%7d%7d%7d%7d%7d%7d",(int)(gyro.gyro.x*100),(int)(gyro.gyro.y*100),(int)(gyro.gyro.z*100),(int)(accel.acceleration.x*100),(int)(accel.acceleration.y*100),(int)(accel.acceleration.z*100));
   Serial.println(tbs);
-  delay(100);
+  
+  delay(10);
+  Serial.flush();
 }
 
 void motor_sweep(int motorid, int offset, int speeds) {      // controlling motor to sweep
