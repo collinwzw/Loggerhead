@@ -111,6 +111,7 @@ void loop(void){
               else{
                 newData = true;
                 ndx=0;
+                Serial.flush();
               }
             }
         }
